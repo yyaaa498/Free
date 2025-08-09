@@ -1,0 +1,142 @@
+<!doctype html>
+
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>free — всё бесплатно</title>
+  <style>
+    :root{
+      --bg1: #fff0f6;
+      --bg2: #fff6f0;
+      --accent:#ff7bac;
+      --muted:#8b7a88;
+      --card:#ffffffcc;
+      --glass: rgba(255,255,255,0.6);
+      --shadow: 0 8px 24px rgba(139,122,136,0.12);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:linear-gradient(160deg,var(--bg1),var(--bg2));display:flex;align-items:center;justify-content:center;padding:24px}
+    .app{width:100%;max-width:1300px;border-radius:18px;padding:22px;backdrop-filter: blur(6px);box-shadow:var(--shadow);background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,248,253,0.7));}
+    header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .logo{font-weight:800;font-size:28px;color:var(--accent);letter-spacing:1px}
+    .tag{color:var(--muted);font-size:13px}
+    main{display:grid;grid-template-columns:1fr 320px;gap:18px;margin-top:18px}
+    .shop{padding:18px;background:var(--glass);border-radius:14px}
+    .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .card{background:white;border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(255,122,172,0.06);display:flex;flex-direction:column;gap:8px}
+    .item-img{height:110px;border-radius:10px;background:linear-gradient(135deg,#ffe8f1,#fff1f6);display:flex;align-items:center;justify-content:center;font-size:30px;color:#c85a86}
+    .item-title{font-weight:700}
+    .price{font-weight:800;color:var(--accent)}
+    .cart{padding:18px;background:linear-gradient(180deg,#fff,#fff6fb);border-radius:14px;}
+    .cart h3{margin:0 0 8px}
+    .cart-list{max-height:480px;overflow:auto;margin-bottom:8px}
+    footer{margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
+    .btn{display:inline-block;padding:8px 12px;border-radius:12px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),#ff9ecb);color:white}
+    .btn-ghost{background:transparent;border:2px solid rgba(255,122,172,0.18);color:var(--accent)}
+    @media (max-width:900px){main{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">free</div>
+      <div class="tag">всё бесплатно (демо)</div>
+    </header><main>
+  <section class="shop">
+    <h3 style="margin-top:0">Каталог</h3>
+    <div class="items" id="items"></div>
+  </section>
+
+  <aside class="cart">
+    <h3>Корзина <span id="count">(0)</span></h3>
+    <div class="cart-list" id="cartList"><div class="small">Корзина пуста ✨</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="flex:1">
+        <div class="small">Итого</div>
+        <div style="font-weight:800;font-size:18px">0 ₽</div>
+      </div>
+      <button class="btn btn-primary" id="checkoutBtn">Оформить</button>
+    </div>
+    <div style="margin-top:10px" class="small">Это демо — реальные покупки не совершаются.</div>
+  </aside>
+</main>
+
+<footer>
+  <div class="small">© free demo</div>
+</footer>
+
+  </div>  <script>
+    const itemsData = [];
+    const things = ['👗 Платье', '🧸 Мягкая игрушка', '💄 Косметичка', '🎵 Музыкальная шкатулка', '📔 Блокнот', '💧 Бутылочка', '👟 Кроссовки', '🎒 Рюкзак', '📱 Телефон', '💻 Ноутбук', '🎧 Наушники', '🖌 Набор кисточек', '🎨 Краски', '🍫 Шоколад', '☕ Кружка', '🍯 Мёд', '🕯 Свеча', '🪞 Зеркальце', '📷 Камера', '📀 Диск', '🪁 Воздушный змей', '🎹 Синтезатор', '🏀 Мяч', '🧩 Пазл', '🚲 Велосипед', '🛹 Скейт', '🎮 Приставка', '🛏 Кровать', '🪑 Стул', '🖼 Картина', '🌸 Цветы', '🍰 Тортик', '🍓 Клубника', '📚 Книги', '🖊 Ручка', '📒 Тетрадь', '🎯 Дартс', '🎺 Труба', '🥁 Барабан', '🎻 Скрипка', '🪗 Аккордеон', '🎲 Настольная игра', '💍 Кольцо', '💎 Украшение', '👜 Сумка', '🕶 Очки', '👒 Шляпка', '👛 Кошелёк'];
+    things.forEach((t, i) => {
+      const [emoji, ...titleArr] = t.split(' ');
+      itemsData.push({id:i+1, title:titleArr.join(' '), price:0, emoji, desc:'Бесплатно и мило'});
+    });
+
+    const itemsEl = document.getElementById('items');
+    const cartList = document.getElementById('cartList');
+    const countEl = document.getElementById('count');
+    let cart = [];
+
+    function renderItems(){
+      itemsEl.innerHTML='';
+      itemsData.forEach(it=>{
+        const c = document.createElement('div'); c.className='card';
+        c.innerHTML = `
+          <div class="item-img">${it.emoji}</div>
+          <div class="item-title">${it.title}</div>
+          <div class="small">${it.desc}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto">
+            <div class="price">0 ₽</div>
+            <button class="btn btn-ghost" onclick="addToCart(${it.id})">Купить</button>
+          </div>
+        `;
+        itemsEl.appendChild(c);
+      });
+    }
+
+    function addToCart(id){
+      const it = itemsData.find(x=>x.id===id);
+      cart.push(it);
+      updateCart();
+    }
+
+    function updateCart(){
+      countEl.textContent = `(${cart.length})`;
+      if(cart.length===0){
+        cartList.innerHTML = '<div class="small">Корзина пуста ✨</div>';
+      } else {
+        cartList.innerHTML = '';
+        cart.forEach((c, i)=>{
+          const row = document.createElement('div');
+          row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.style.padding='6px 0';
+          row.innerHTML = `<div>${c.emoji} ${c.title}</div><div><button class="btn" onclick="removeItem(${i})">✕</button></div>`;
+          cartList.appendChild(row);
+        })
+      }
+    }
+
+    function removeItem(index){
+      cart.splice(index,1);updateCart();
+    }
+
+    function checkout(){
+      if(cart.length===0){
+        alert('Корзина пуста');
+        return;
+      }
+      const orderId = Math.random().toString(36).slice(2,9).toUpperCase();
+      alert(`Спасибо! Заказ №${orderId} оформлен. Всё бесплатно (демо).`);
+      cart = [];
+      updateCart();
+    }
+
+    document.getElementById('checkoutBtn').addEventListener('click', checkout);
+
+    renderItems();
+    updateCart();
+  </script></body>
+</html>
